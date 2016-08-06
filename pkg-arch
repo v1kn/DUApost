@@ -1,0 +1,93 @@
+abcde
+accountsservice
+acetoneiso2
+alsa-lib alsa-utils
+amule
+android-file-transfer
+android-tools
+android-udev
+anki
+aspell aspell-en aspell-pl
+atool
+audacity
+autoconf automake
+bash-completion
+bc
+bleachbit
+blender
+bzip2
+ca-certificates
+calibre
+catfish
+ccrypt
+cdparanoia
+chromium
+colordiff
+cpupower
+couetools
+ddrescue
+dialog
+dosfstools
+dvd+rw-tools
+exfat-utils
+faac
+faad2
+fakeroot
+ffmpeg
+file-roller
+flac
+git
+gnome-keyring
+gptfdisk
+grsync
+gst-plugins-bad gst-plugins-base gst-plugins-good gst-plugins-ugly gst-libav
+gvfs
+gvfs-mtp
+id3 id3v2
+iw or wireless_tools
+jasper
+jq or jshon
+keychain
+lame
+libcaca
+libdca
+libdv
+libdvdcss libdvdread
+libmp4v2 libmad libmpcdec libmpeg2
+libtheora
+libvorbis
+lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings
+make
+mesa
+mp3gain
+mplayer mpv
+multilib-devel
+ncdu
+net-tools
+networkmanager network-manager-applet
+opusfile
+p7zip
+parted gparted
+patch
+perl
+pkg-config
+pulseaudio pulseaudio-alsa pavucontrol
+reflector
+rsnapshot
+rsync
+sleuthkit
+ttf-dejavu
+ufw gufw
+unrar
+util-linux
+vlc npapi-vlc
+volumeicon
+vorbis-tools
+vorbisgain
+wavpack
+wget
+wpa_supplicant
+xdg-users-dir
+x264 x265
+xfce4 xfce4-goodies
+xvidcore

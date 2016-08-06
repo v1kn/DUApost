@@ -1,0 +1,38 @@
+abook --> ncurses address book
+alac-decoder
+bootchart pybootchartgui
+bootchart2 --> for debian
+bristol monobristol
+chkrootkit
+clamav clamav-freshclam
+cups
+elinks
+emacs24
+figlet
+forensics-all
+gjiten
+golang
+guvcview
+handbrake
+hnb --> hierarchical notebook for terminal
+hplip
+id3ren --> CLI id3 tagger and renamer
+katarakt
+ksysguard
+lynx
+mecab mecab-ipadic-utf8 mecab-jumandic-utf8 mecab-naist-jdic
+midori
+mpd
+ncmpcpp
+nethogs
+openshot
+pepperflashplugin-nonfree
+browser-plugin-freshplayer-pepperflash --> debian
+picard
+samba system-config-samba
+scilab --> matlab alternative
+sxiv
+task-spooler
+texlive-full texlive-xetex texmaker
+wireshark
+xournal

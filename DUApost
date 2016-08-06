@@ -1,0 +1,270 @@
+#!/bin/bash
+#
+#-----------------------------------------------------
+# post-install script for arch, debian, ubuntu systems
+# 2016/03/26
+#
+#-----------------------------------------------------
+
+#       PREAMBLE [-
+#       ========
+
+# USERNAME
+echo "please enter Your username:"
+read user
+echo "thank You $user. proceeding with the installation..."
+
+# VARIABLES
+
+## OS versions
+osver=$(cat /etc/os-release | grep "^NAME" | cut -d\" -f 2)
+ubu="Ubuntu"
+arch="Arch Linux"
+deb="Debian GNU/Linux"
+
+## user and script parent directories
+hm="/home/$user"
+src="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+## beautify echo messages
+nl=$'\n*****\n'
+
+## specify dpkg action when updating config files during installation
+dpk="-o Dpkg::Options::=\"--force-confnew\""
+
+## intel fix for screen tearing in xfce
+intel=$'Section "Device"\n Identifier "Intel Graphics"\n Driver "Intel"\n Option "AccelMethod" "sna"\n Option "TearFree" "true"\nEndSection'
+
+# redirect errors and output to logs
+exec 1> >(tee -a "$src/post.log")
+exec 2> >(tee -a "$src/post_err.log")
+
+# functions for identical procedures across OSes
+## install ruby and python packages as normal user
+pip_and_gem() {
+    cd $hm
+    echo -e "${nl}installing ruby gems...${nl}"
+    sleep 1
+    gem install --user-install tmuxinator
+    echo -e "${nl}done${nl}"
+
+    echo -e "${nl}installing pip packages...${nl}"
+    sleep 1
+    virtualenv --no-site-packages -p python3 $hm/.local/pyvenv
+    source $hm/.local/pyvenv/bin/activate
+    pip install $(< $src/pkg-pip)
+    deactivate
+    echo -e "${nl}done${nl}"
+}
+## setting up documents and dotfiles as normal user
+unpack_docs() {
+    cd $hm
+    echo -e "${nl}taking care of docs and dotfiles...${nl}"
+    sleep 1
+    mkdir -p $src/saved-dots
+    for origdot in .bashrc .profile .bash_profile .Xresources .config/terminator/config
+    do
+        [[ -f "$origdot" ]] && mv "$origdot" $src/saved-dots/
+    done
+#    mkdir git-repos && cd git-repos
+#    git clone https://github.com/v1kn/dotfiles
+#    cd dotfiles
+#    find "$(pwd)" -mindepth 1 -maxdepth 1 -type d | grep -v "\git" | sort
+    aunpack -qq -f $src/files.7z
+    aunpack -qq -f $src/git-repos.7z
+    cd git-repos/dotfiles
+    while read dotfolder
+    do
+        stow -v -t "$hm" "$dotfolder"
+    done <<< "$(find "$(pwd)" -mindepth 1 -maxdepth 1 -type d | grep -v "\.git" | sort)"
+    echo -e "${nl}done${nl}"
+}
+error_correction() {
+    dpkg --configure -a
+    apt-get "$dpk" install -y -f
+}
+#-]
+
+#       ARCH [-
+#       ====
+if [[ $osver = $arch ]]
+then
+    # update the system
+    echo -e "${nl}updating the system...${nl}"
+    sleep 1
+    pacman -Syyu --noconfirm
+    echo -e "${nl}done${nl}"
+
+    # install arch repos software
+    echo -e "${nl}installing missing software from the repos...${nl}"
+    sleep 1
+    pacman -S --noconfirm $(< $src/pkg-arch)
+
+    # taking care of intel graphics tear free videos
+    mkdir $src/saved-dots
+    [[ ! -d /etc/X11/xorg.conf.d ]] && mkdir /etc/X11/xorg.conf.d
+    [[ -f /etc/X11/xorg.conf.d/20-intel.conf ]] && mv /etc/X11/xorg.conf.d/20-intel.conf "$src"/saved-dots/
+    echo -e "$intel" > /etc/X11/xorg.conf.d/20-intel.conf
+
+    # installing virtualenv globally
+    pip install virtualenv
+
+    # install aura
+    su - $user <<EOF
+    echo -e "${nl}installing aura AUR helper...${nl}"
+    sleep 1
+    cd $hm
+    git clone https://aur.archlinux.org/aura-bin.git
+    cd aura-bin
+    makepkg -sir
+    cd $hm
+    rm -rf aura-bin
+    echo -e "${nl}done${nl}"
+
+    # install AUR packages
+    echo -e "${nl}installing packages from the AUR...${nl}"
+    sleep 1
+    sudo aura -Aua --noconfirm $(< $src/pkg-arch-aur)
+    echo -e "${nl}done${nl}"
+
+    # ruby and python packages, dotfiles
+    pip_and_gem
+    unpack_docs
+EOF
+
+    echo -e "${nl}ALL DONE\nPlease check the install logs and then reboot${nl}"
+#-]
+
+#       UBUNTU [-
+#       ======
+elif [[ $osver = $ubu ]]
+then
+    # set non-interactive environment
+    export DEBIAN_FRONTEND=noninteractive
+
+    # update the system
+    echo -e "${nl}updating the system...${nl}"
+    sleep 1
+    apt-get update && apt-get "$dpk" dist-upgrade -y
+    error_correction
+    echo -e "${nl}done${nl}"
+
+    # remove unwanted software
+    echo -e "${nl}removing all unwanted software...${nl}"
+    sleep 1
+    apt-get --purge remove -y $(< $src/pkgrm-ubudeb)
+    apt-get --purge autoremove -y
+    echo -e "${nl}done${nl}"
+
+    # check if PPAs are available for this ubuntu version
+    dist=$(lsb_release -sc)
+    ppas=$(cat $src/ppa-ubu)
+    echo -e "${nl}this is ubuntu $dist"
+    echo -e "checking if all the PPAs are compatible with $dist...${nl}"
+    sleep 1
+    echo $ppas |
+    while read -r ppa; do
+        url="http://ppa.launchpad.net/$ppa/ubuntu/dists/$dist/"
+        if [[ $(wget -O /dev/null "$url" 2>&1 | grep "200 OK" | wc -l) == "0" ]]
+        then
+            echo -e "ppa:$ppa does not have a $dist version"
+            echo $ppa >> $src/failed-ppas
+        else
+            echo -e "${nl}adding ppa:$ppa...${nl}"
+            sleep 1
+            add-apt-repository -y ppa:$ppa
+        fi
+    done
+    apt-get update && apt-get "$dpk" dist-upgrade -y
+    error_correction
+    echo -e "${nl}done${nl}"
+
+    # install packages
+    echo -e "${nl}installing software from the repos and PPAs...${nl}"
+    sleep 1
+    apt-get install "$dpk" -y $(< $src/pkg-ubu)
+    echo -e "${nl}done${nl}"
+
+    # install Viber
+    cd $hm
+    wget "http://download.cdn.viber.com/cdn/desktop/Linux/viber.deb"
+    dpkg -i viber.deb
+    rm viber.deb
+
+    # taking care of intel graphics tear free videos
+    mkdir $src/saved-dots
+    [[ ! -d /etc/X11/xorg.conf.d ]] && mkdir /etc/X11/xorg.conf.d
+    [[ -f /etc/X11/xorg.conf.d/20-intel.conf ]] && mv /etc/X11/xorg.conf.d/20-intel.conf $src/saved-dots/
+    echo -e "$intel" > /etc/X11/xorg.conf.d/20-intel.conf
+
+    # ruby and python packages, dotfiles
+    pip3 install virtualenv
+    su - $user <<EOF
+    pip_and_gem
+    unpack_docs
+EOF
+
+    echo -e "${nl}ALL DONE\nPlease check the install logs and then reboot${nl}"
+#-]
+
+#       DEBIAN [-
+#       ======
+elif [[ $osver = $deb ]]
+then
+    # set non-interactive environment
+    export DEBIAN_FRONTEND=noninteractive
+
+    # update the system
+    echo -e "${nl}updating the system...${nl}"
+    sleep 1
+    apt-get update && apt-get "$dpk" dist-upgrade -y
+    error_correction
+    echo -e "${nl}done${nl}"
+
+    # remove unwanted software
+    echo -e "${nl}removing all unwanted software...${nl}"
+    sleep 1
+    apt-get --purge remove -y $(< $src/pkgrm-ubudeb)
+    apt-get --purge autoremove -y
+    echo -e "${nl}done${nl}"
+
+    # update to Stretch
+    mkdir $src/saved-dots
+    cp /etc/apt/sources.list $src/saved-dots/sources.list.orig
+    echo "$(cat $src/sources-deb)" > /etc/apt/sources.list
+    apt-get update && apt-get "$dpk" dist-upgrade -y
+    error_correction
+
+    # install packages
+    echo -e "${nl}installing software from the repos...${nl}"
+    sleep 1
+    apt-get "$dpk" install -y $(< $src/pkg-deb)
+    error_correction
+    echo -e "${nl}done${nl}"
+
+    # install Viber
+    cd $hm
+    wget "http://download.cdn.viber.com/cdn/desktop/Linux/viber.deb"
+    dpkg -i *.deb
+    rm viber.deb
+
+    # taking care of intel graphics tear free videos
+    [[ ! -d /etc/X11/xorg.conf.d ]] && mkdir /etc/X11/xorg.conf.d
+    [[ -f /etc/X11/xorg.conf.d/20-intel.conf ]] && cp /etc/X11/xorg.conf.d/20-intel.conf "$src"/saved-dots/
+    echo -e "$intel" > /etc/X11/xorg.conf.d/20-intel.conf
+
+    # ruby and python packages, dotfiles
+    pip3 install virtualenv
+    su - $user <<EOF
+    pip_and_gem
+    unpack_docs
+EOF
+
+    echo -e "${nl}ALL DONE\nPlease check the install logs and reboot${nl}"
+#-]
+
+else
+    echo -e "ERROR: Unrecognized system.\nTarget OSes are:"
+    echo -e "1. $arch\n2. $deb\n3. $ubu\nexiting"
+    exit 1
+fi
