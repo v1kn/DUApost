@@ -1,38 +1,46 @@
 abook --> ncurses address book
+accountsservice
+acetoneiso (ubu) acetoneiso2 (arch)
 alac-decoder
+amule
+blender
 bootchart pybootchartgui
 bootchart2 --> for debian
 bristol monobristol
+calibre or fbreader
+catfish
 chkrootkit
 clamav clamav-freshclam
-cups
+dvd+rw-tools
 elinks
 emacs24
 figlet
 forensics-all
 gjiten
-golang
+gnome-keyring
+gthumb
 guvcview
 handbrake
 hnb --> hierarchical notebook for terminal
-hplip
+id3
+id3v2
 id3ren --> CLI id3 tagger and renamer
 katarakt
-ksysguard
-lynx
+lame
+libdv
 mecab mecab-ipadic-utf8 mecab-jumandic-utf8 mecab-naist-jdic
-midori
 mpd
 ncmpcpp
 nethogs
-openshot
 pepperflashplugin-nonfree
 browser-plugin-freshplayer-pepperflash --> debian
 picard
+rsnapshot
 samba system-config-samba
 scilab --> matlab alternative
 sxiv
 task-spooler
-texlive-full texlive-xetex texmaker
+texlive-full texlive-xetex
+vlc npapi-vlc
 wireshark
 xournal

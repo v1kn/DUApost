@@ -1,93 +1,119 @@
 abcde
-accountsservice
-acetoneiso2
-alsa-lib alsa-utils
-amule
+alsa-utils
 android-file-transfer
 android-tools
 android-udev
 anki
-aspell aspell-en aspell-pl
 atool
 audacity
-autoconf automake
 bash-completion
-bc
 bleachbit
-blender
-bzip2
 ca-certificates
-calibre
-catfish
 ccrypt
 cdparanoia
 chromium
+clementine or gmusicbrowser or other
 colordiff
+cmus
 cpupower
-couetools
+cuetools
 ddrescue
 dialog
+dkms
+dmenu
 dosfstools
-dvd+rw-tools
+dunst
+expac
 exfat-utils
 faac
 faad2
 fakeroot
+fcitx
+fcitx-gtk2
+fcitx-gtk3
+fcitx-mozc
 ffmpeg
 file-roller
 flac
+ghostscript
 git
-gnome-keyring
+gksu
+gparted
+gpicview
 gptfdisk
 grsync
-gst-plugins-bad gst-plugins-base gst-plugins-good gst-plugins-ugly gst-libav
+gst-plugins-bad
+gst-plugins-base
+gst-plugins-good
+gst-plugins-ugly
+gufw
 gvfs
 gvfs-mtp
-id3 id3v2
-iw or wireless_tools
+gvim
+haveged
+htop
+hunspell
+hunspell-en
+hunspell-pl
+i3lock
+imagemagick
+intel-ucode
+iw
 jasper
-jq or jshon
+jq
 keychain
-lame
-libcaca
-libdca
-libdv
-libdvdcss libdvdread
-libmp4v2 libmad libmpcdec libmpeg2
-libtheora
-libvorbis
-lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings
+libdvdcss
+libmpcdec
+libreoffice-fresh
+linux-headers
+linux-lts
+linux-lts-headers
+livestreamer
+lsof
 make
-mesa
 mp3gain
-mplayer mpv
+mpv
 multilib-devel
 ncdu
+neovim
 net-tools
-networkmanager network-manager-applet
+networkmanager
+network-manager-applet
+newsbeuter
+ntfs-3g
 opusfile
 p7zip
-parted gparted
+pandoc
+parted
 patch
 perl
-pkg-config
-pulseaudio pulseaudio-alsa pavucontrol
+pavucontrol
+pulseaudio
+pulseaudio-alsa
+ranger
 reflector
-rsnapshot
+rofi
 rsync
 sleuthkit
+terminator
+texlive-bin
+texlive-langjapanese
+texlive-latexextra
+texstudio
 ttf-dejavu
-ufw gufw
+ttf-ume
+ufw
 unrar
-util-linux
-vlc npapi-vlc
+virtualbox-guest-iso
+virtualbox-host-dkms
 volumeicon
 vorbis-tools
 vorbisgain
 wavpack
 wget
-wpa_supplicant
-xdg-users-dir
-x264 x265
+xautolock
+xdg-user-dirs
+x264
+x265
 xfce4 xfce4-goodies
 xvidcore

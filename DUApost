@@ -25,6 +25,7 @@ deb="Debian GNU/Linux"
 ## user and script parent directories
 hm="/home/$user"
 src="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+mkdir -p $src/saved-dots
 
 ## beautify echo messages
 nl=$'\n*****\n'
@@ -61,7 +62,6 @@ unpack_docs() {
     cd $hm
     echo -e "${nl}taking care of docs and dotfiles...${nl}"
     sleep 1
-    mkdir -p $src/saved-dots
     for origdot in .bashrc .profile .bash_profile .Xresources .config/terminator/config
     do
         [[ -f "$origdot" ]] && mv "$origdot" $src/saved-dots/
@@ -101,10 +101,12 @@ then
     pacman -S --noconfirm $(< $src/pkg-arch)
 
     # taking care of intel graphics tear free videos
-    mkdir $src/saved-dots
     [[ ! -d /etc/X11/xorg.conf.d ]] && mkdir /etc/X11/xorg.conf.d
     [[ -f /etc/X11/xorg.conf.d/20-intel.conf ]] && mv /etc/X11/xorg.conf.d/20-intel.conf "$src"/saved-dots/
     echo -e "$intel" > /etc/X11/xorg.conf.d/20-intel.conf
+
+    # unloading pc speaker module
+    echo "blacklist pcspkr" > /etc/modprobe.d/nobeep.conf
 
     # installing virtualenv globally
     pip install virtualenv
@@ -192,7 +194,6 @@ then
     rm viber.deb
 
     # taking care of intel graphics tear free videos
-    mkdir $src/saved-dots
     [[ ! -d /etc/X11/xorg.conf.d ]] && mkdir /etc/X11/xorg.conf.d
     [[ -f /etc/X11/xorg.conf.d/20-intel.conf ]] && mv /etc/X11/xorg.conf.d/20-intel.conf $src/saved-dots/
     echo -e "$intel" > /etc/X11/xorg.conf.d/20-intel.conf
@@ -229,7 +230,6 @@ then
     echo -e "${nl}done${nl}"
 
     # update to Stretch
-    mkdir $src/saved-dots
     cp /etc/apt/sources.list $src/saved-dots/sources.list.orig
     echo "$(cat $src/sources-deb)" > /etc/apt/sources.list
     apt-get update && apt-get "$dpk" dist-upgrade -y
