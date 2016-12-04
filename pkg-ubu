@@ -8,6 +8,7 @@ apt
 apt-rdepends
 apt-xapian-index
 aptitude
+arandr
 arc-theme
 artha
 aspell
@@ -270,7 +271,7 @@ unrar
 unzip
 uudeview
 vim
-vim-gnome
+vim-gtk3
 virtualbox
 virtualbox-dkms
 virtualbox-guest-additions-iso

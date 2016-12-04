@@ -1,20 +1,18 @@
 #!/bin/bash
-#
-#-----------------------------------------------------
-# post-install script for arch, debian, ubuntu systems
-# 2016/03/26
-#
-#-----------------------------------------------------
 
-#       PREAMBLE [-
-#       ========
+##=====
+## post-install script for arch, debian, ubuntu systems
+## https://github.com/v1kn/DUApost
+## 2016/03/26
+##=====
 
-# USERNAME
+#   PREAMBLE [-
+#   ========
+
+## Username
 echo "please enter Your username:"
 read user
 echo "thank You $user. proceeding with the installation..."
-
-# VARIABLES
 
 ## OS versions
 osver=$(cat /etc/os-release | grep "^NAME" | cut -d\" -f 2)
@@ -36,13 +34,12 @@ dpk="-o Dpkg::Options::=\"--force-confnew\""
 ## intel fix for screen tearing in xfce
 intel=$'Section "Device"\n Identifier "Intel Graphics"\n Driver "Intel"\n Option "AccelMethod" "sna"\n Option "TearFree" "true"\nEndSection'
 
-# redirect errors and output to logs
+## redirect errors and output to logs
 exec 1> >(tee -a "$src/post.log")
 exec 2> >(tee -a "$src/post_err.log")
 
-# functions for identical procedures across OSes
 ## install ruby and python packages as normal user
-pip_and_gem() {
+pip_gem() {
     cd $hm
     echo -e "${nl}installing ruby gems...${nl}"
     sleep 1
@@ -51,9 +48,9 @@ pip_and_gem() {
 
     echo -e "${nl}installing pip packages...${nl}"
     sleep 1
-    virtualenv --no-site-packages -p python3 $hm/.local/pyvenv
+    virtualenv -p python3 $hm/.local/pyvenv
     source $hm/.local/pyvenv/bin/activate
-    pip install $(< $src/pkg-pip)
+    pip3 install $(< $src/pkg-pip)
     deactivate
     echo -e "${nl}done${nl}"
 }
@@ -62,7 +59,7 @@ unpack_docs() {
     cd $hm
     echo -e "${nl}taking care of docs and dotfiles...${nl}"
     sleep 1
-    for origdot in .bashrc .profile .bash_profile .Xresources .config/terminator/config
+    for origdot in .bashrc .profile .bash_profile .Xresources
     do
         [[ -f "$origdot" ]] && mv "$origdot" $src/saved-dots/
     done
@@ -79,14 +76,14 @@ unpack_docs() {
     done <<< "$(find "$(pwd)" -mindepth 1 -maxdepth 1 -type d | grep -v "\.git" | sort)"
     echo -e "${nl}done${nl}"
 }
-error_correction() {
+err_corr() {
     dpkg --configure -a
     apt-get "$dpk" install -y -f
 }
 #-]
 
-#       ARCH [-
-#       ====
+#   ARCH [-
+#   ====
 if [[ $osver = $arch ]]
 then
     # update the system
@@ -130,15 +127,15 @@ then
     echo -e "${nl}done${nl}"
 
     # ruby and python packages, dotfiles
-    pip_and_gem
+    pip_gem
     unpack_docs
 EOF
 
     echo -e "${nl}ALL DONE\nPlease check the install logs and then reboot${nl}"
 #-]
 
-#       UBUNTU [-
-#       ======
+#   UBUNTU [-
+#   ======
 elif [[ $osver = $ubu ]]
 then
     # set non-interactive environment
@@ -148,7 +145,7 @@ then
     echo -e "${nl}updating the system...${nl}"
     sleep 1
     apt-get update && apt-get "$dpk" dist-upgrade -y
-    error_correction
+    err_corr
     echo -e "${nl}done${nl}"
 
     # remove unwanted software
@@ -178,7 +175,7 @@ then
         fi
     done
     apt-get update && apt-get "$dpk" dist-upgrade -y
-    error_correction
+    err_corr
     echo -e "${nl}done${nl}"
 
     # install packages
@@ -201,15 +198,15 @@ then
     # ruby and python packages, dotfiles
     pip3 install virtualenv
     su - $user <<EOF
-    pip_and_gem
+    pip_gem
     unpack_docs
 EOF
 
     echo -e "${nl}ALL DONE\nPlease check the install logs and then reboot${nl}"
 #-]
 
-#       DEBIAN [-
-#       ======
+#   DEBIAN [-
+#   ======
 elif [[ $osver = $deb ]]
 then
     # set non-interactive environment
@@ -219,7 +216,7 @@ then
     echo -e "${nl}updating the system...${nl}"
     sleep 1
     apt-get update && apt-get "$dpk" dist-upgrade -y
-    error_correction
+    err_corr
     echo -e "${nl}done${nl}"
 
     # remove unwanted software
@@ -233,13 +230,13 @@ then
     cp /etc/apt/sources.list $src/saved-dots/sources.list.orig
     echo "$(cat $src/sources-deb)" > /etc/apt/sources.list
     apt-get update && apt-get "$dpk" dist-upgrade -y
-    error_correction
+    err_corr
 
     # install packages
     echo -e "${nl}installing software from the repos...${nl}"
     sleep 1
     apt-get "$dpk" install -y $(< $src/pkg-deb)
-    error_correction
+    err_corr
     echo -e "${nl}done${nl}"
 
     # install Viber
@@ -256,7 +253,7 @@ then
     # ruby and python packages, dotfiles
     pip3 install virtualenv
     su - $user <<EOF
-    pip_and_gem
+    pip_gem
     unpack_docs
 EOF
 
