@@ -4,6 +4,7 @@ android-file-transfer
 android-tools
 android-udev
 anki
+arandr
 atool
 audacity
 bash-completion
@@ -107,7 +108,6 @@ ufw
 unrar
 virtualbox-guest-iso
 virtualbox-host-dkms
-volumeicon
 vorbis-tools
 vorbisgain
 wavpack
@@ -116,5 +116,5 @@ xautolock
 xdg-user-dirs
 x264
 x265
-xfce4 xfce4-goodies
+xfce4
 xvidcore
