@@ -9,22 +9,13 @@
 #   PREAMBLE [-
 #   ========
 
-##   Variables [-
-##   ---------
+##   Variables and startup [-
+##   ---------------------
 
-#   Username
-echo "enter username:"
-read user
-echo "welcome $user. proceeding with the installation"
+#   beautify echo messages
+nl=$'\n==========\n'
 
-#   OS versions
-osver=$(cat /etc/os-release | grep "^NAME" | cut -d\" -f 2)
-ubu="Ubuntu"
-arch="Arch Linux"
-deb="Debian GNU/Linux"
-
-#   user and script parent directories
-hm="/home/$user"
+#   define parent dir of the script
 src="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 mkdir -p $src/saved-dots
 
@@ -32,8 +23,19 @@ mkdir -p $src/saved-dots
 exec 1> >(tee -a $src/post.log)
 exec 2> >(tee -a $src/post_err.log)
 
-#   beautify echo messages
-nl=$'\n==========\n'
+#   date, username
+echo -e ${nl}
+date
+echo -e "\nenter username:"
+read user
+echo -e "\nwelcome $user. proceeding with the installation${nl}"
+hm="/home/$user"
+
+#   OS versions
+osver=$(cat /etc/os-release | grep "^NAME" | cut -d\" -f 2)
+ubu="Ubuntu"
+arch="Arch Linux"
+deb="Debian GNU/Linux"
 
 #   specify dpkg action when updating config files during installation
 dpk="-o Dpkg::Options::=\"--force-confdef --force-confold\""
@@ -72,11 +74,11 @@ unpack_docs() {
     do
         [[ -f "$origdot" ]] && mv "$origdot" $src/saved-dots/
     done
-    #mkdir git-repos && cd git-repos
+    #mkdir grepo && cd grepo
     #git clone https://github.com/v1kn/dotfiles
     aunpack -qq -f $src/files.7z
-    aunpack -qq -f $src/git-repos.7z
-    cd git-repos/dotfiles
+    aunpack -qq -f $src/grepo.7z
+    cd grepo/dotfiles
     while read dotfolder
     do
         stow -v -t "$hm" "$dotfolder"
@@ -90,7 +92,7 @@ viber_ins() {
         dpkg -i viber.deb
         rm viber.deb
     else
-        echo -e "No viber deb file under that URL. Install it manually later"
+        echo -e "${nl}No viber deb file under that URL. Install it manually later${nl}"
     fi
 }
 
@@ -105,30 +107,25 @@ err_corr() {
 #   ====
 if [[ $osver = $arch ]]
 then
-    ${nl}date${nl}
-
-    # update the system
+    # update
     echo -e "${nl}updating the system${nl}"
     reflector -c Poland -l 10 -f 5 --save /etc/pacman.d/mirrorlist
     pacman -Syyu --noconfirm
 
-    # install arch repos software
+    # install official software
     echo -e "${nl}installing missing software from the repos${nl}"
     pacman -S --noconfirm $(< $src/pkg-arch)
 
-    # taking care of intel graphics tear free videos
-    intel_ins
+    # system tweaks
+    echo -e "${nl}tweaking the system${nl}"
+    intel_ins       # intel tear fix
+    echo "blacklist pcspkr" > /etc/modprobe.d/nobeep.conf #unloading pcspkr module
+    pip install virtualenv      # install virtualenv
 
-    # unloading pc speaker module
-    echo "blacklist pcspkr" > /etc/modprobe.d/nobeep.conf
-
-    # installing virtualenv globally
-    pip install virtualenv
-
-    # install pacaur
+    # pacaur
+    echo -e "${nl}installing pacaur${nl}"
     gpg --keyserver hkp://pgp.mit.edu --recv-keys 1EB2638FF56C0C53
     su - $user <<EOF
-    echo -e "${nl}installing pacaur${nl}"
     cd $hm
     git clone https://aur.archlinux.org/cower.git
     cd cower
@@ -155,12 +152,10 @@ EOF
 #   ======
 elif [[ $osver = $ubu ]]
 then
-    ${nl}date${nl}
-
     # set non-interactive environment
     export DEBIAN_FRONTEND=noninteractive
 
-    # update the system
+    # update
     echo -e "${nl}updating the system${nl}"
     apt-get update && apt-get "$dpk" dist-upgrade -y
     err_corr
@@ -210,8 +205,6 @@ EOF
 #   ======
 elif [[ $osver = $deb ]]
 then
-    ${nl}date${nl}
-
     # set non-interactive environment
     export DEBIAN_FRONTEND=noninteractive
 
