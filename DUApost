@@ -1,10 +1,10 @@
 #!/bin/bash
 
-##=====
+##
 ## post-install script for arch, debian, ubuntu systems
 ## https://github.com/v1kn/DUApost
 ## 2016/03/26
-##=====
+##
 
 #   PREAMBLE [-
 #   ========
@@ -16,20 +16,20 @@
 nl=$'\n==========\n'
 
 #   define parent dir of the script
-src="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-mkdir -p $src/saved-dots
+src=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ) || exit
+mkdir -p "$src"/saved-dots
 
 #   redirect errors and output to logs
-exec 1> >(tee -a $src/post.log)
-exec 2> >(tee -a $src/post_err.log)
+exec 1> >(tee -a "$src"/post.log)
+exec 2> >(tee -a "$src"/post_err.log)
 
 #   date, username
-echo -e ${nl}
+echo -e "${nl}"
 date
 echo -e "\nenter username:"
 read user
-echo -e "\nwelcome $user. proceeding with the installation${nl}"
-hm="/home/$user"
+echo -e "\nwelcome "$user". proceeding with the installation"${nl}""
+hm="/home/"$user""
 
 #   OS versions
 osver=$(cat /etc/os-release | grep "^NAME" | cut -d\" -f 2)
@@ -56,43 +56,41 @@ intel_ins() {
 
 #   install ruby and python packages as normal user
 pip_gem() {
-    cd $hm
-    echo -e "${nl}installing ruby gems${nl}"
-    gem install --user-install tmuxinator
-    echo -e "${nl}installing pip packages${nl}"
-    virtualenv -p python3 $hm/.local/pyvenv
-    source $hm/.local/pyvenv/bin/activate
-    pip3 install $(< $src/pkg-pip)
+    cd "$hm" || exit
+    echo -e ""${nl}"installing ruby gems"${nl}""
+    gem install --install-dir "$hm"/.local/gem tmuxinator
+    echo -e ""${nl}"installing pip packages"${nl}""
+    virtualenv -p python3 "$hm"/.local/pyvenv
+    source "$hm"/.local/pyvenv/bin/activate
+    pip3 install $(< "$src"/pkg-pip)
     deactivate
 }
 
 #   setting up documents and dotfiles as normal user
 unpack_docs() {
-    cd $hm
-    echo -e "${nl}taking care of docs and dotfiles${nl}"
-    for origdot in .bashrc .profile .bash_profile .Xresources
-    do
-        [[ -f "$origdot" ]] && mv "$origdot" $src/saved-dots/
+    cd "$hm" || exit
+    echo -e ""${nl}"taking care of docs and dotfiles"${nl}""
+    for origdot in .bashrc .profile .bash_profile .Xresources; do
+        [[ -f "$origdot" ]] && mv "$origdot" "$src"/saved-dots/
     done
     #mkdir grepo && cd grepo
     #git clone https://github.com/v1kn/dotfiles
-    aunpack -qq -f $src/files.7z
-    aunpack -qq -f $src/grepo.7z
+    aunpack -qq -f "$src"/files.7z
+    aunpack -qq -f "$src"/grepo.7z
     cd grepo/dotfiles
-    while read dotfolder
-    do
+    while read dotfolder; do
         stow -v -t "$hm" "$dotfolder"
     done <<< "$(find "$(pwd)" -mindepth 1 -maxdepth 1 -type d | grep -v "\.git" | sort)"
-    cd $hm
+    cd "$hm" || exit
 }
 viber_ins() {
-    cd $hm
+    cd "$hm" || exit
     if [[ $(wget "http://download.cdn.viber.com/cdn/desktop/Linux/viber.deb" 2>&1 | grep "200 OK" | wc -l) == "1" ]]
     then
         dpkg -i viber.deb
         rm viber.deb
     else
-        echo -e "${nl}No viber deb file under that URL. Install it manually later${nl}"
+        echo -e ""${nl}"No viber deb file under that URL. Install it manually later"${nl}""
     fi
 }
 
@@ -105,87 +103,84 @@ err_corr() {
 
 #   ARCH [-
 #   ====
-if [[ $osver = $arch ]]
-then
+if [[ "$osver" = "$arch" ]]; then
     # update
-    echo -e "${nl}updating the system${nl}"
+    echo -e ""${nl}"updating the system"${nl}""
     reflector -c Poland -l 10 -f 5 --save /etc/pacman.d/mirrorlist
     pacman -Syyu --noconfirm
 
     # install official software
-    echo -e "${nl}installing missing software from the repos${nl}"
-    pacman -S --noconfirm $(< $src/pkg-arch)
+    echo -e ""${nl}"installing missing software from the repos"${nl}""
+    pacman -S --noconfirm $(< "$src"/pkg-arch)
 
     # system tweaks
-    echo -e "${nl}tweaking the system${nl}"
+    echo -e ""${nl}"tweaking the system"${nl}""
     intel_ins       # intel tear fix
     echo "blacklist pcspkr" > /etc/modprobe.d/nobeep.conf #unloading pcspkr module
     pip install virtualenv      # install virtualenv
 
     # pacaur
-    echo -e "${nl}installing pacaur${nl}"
+    echo -e ""${nl}"installing pacaur"${nl}""
     gpg --keyserver hkp://pgp.mit.edu --recv-keys 1EB2638FF56C0C53
-    su - $user <<EOF
-    cd $hm
+    su - "$user" <<EOF
+    cd "$hm" || exit
     git clone https://aur.archlinux.org/cower.git
     cd cower
     makepkg -sir --noconfirm --asdeps
     git clone https://aur.archlinux.org/pacaur.git
     cd pacaur
     makepkg -sir --noconfirm
-    cd $hm
+    cd "$hm"
     rm -rf cower
 
     # install AUR packages
-    echo -e "${nl}installing packages from the AUR${nl}"
-    pacaur -ayu --noedit --noconfirm $(< $src/pkg-arch-aur)
+    echo -e ""${nl}"installing packages from the AUR"${nl}""
+    pacaur -ayu --noedit --noconfirm $(< "$src"/pkg-arch-aur)
 
     # ruby and python packages, dotfiles
     pip_gem
     unpack_docs
 EOF
 
-    echo -e "${nl}ALL DONE\nPlease check the install logs and then reboot${nl}"
+    echo -e ""${nl}"ALL DONE\nPlease check the install logs and then reboot"${nl}""
 #-]
 
 #   UBUNTU [-
 #   ======
-elif [[ $osver = $ubu ]]
-then
+elif [[ "$osver" = "$ubu" ]]; then
     # set non-interactive environment
     export DEBIAN_FRONTEND=noninteractive
 
     # update
-    echo -e "${nl}updating the system${nl}"
+    echo -e ""${nl}"updating the system"${nl}""
     apt-get update && apt-get "$dpk" dist-upgrade -y
     err_corr
 
     # remove unwanted software
-    echo -e "${nl}removing all unwanted software${nl}"
-    apt-get --purge remove -y $(< $src/pkgrm-ubudeb)
+    echo -e ""${nl}"removing all unwanted software"${nl}""
+    apt-get --purge remove -y $(< "$src"/pkgrm-ubudeb)
     apt-get --purge autoremove -y
 
     # check if PPAs are available for this ubuntu version
     dist=$(lsb_release -sc)
-    echo -e "${nl}this is ubuntu $dist"
-    echo -e "checking if all PPAs are compatible with $dist ${nl}"
+    echo -e ""${nl}"this is ubuntu "$dist""
+    echo -e "checking if all PPAs are compatible with "$dist" "${nl}""
     while read -r ppa; do
-        url="http://ppa.launchpad.net/$ppa/ubuntu/dists/$dist/"
-        if [[ $(wget -O /dev/null "$url" 2>&1 | grep "200 OK" | wc -l) == "0" ]]
-        then
-            echo -e "ppa:$ppa does not have a $dist version"
-            echo $ppa >> $src/failed-ppas
+        url="http://ppa.launchpad.net/"$ppa"/ubuntu/dists/"$dist"/"
+        if [[ $(wget -O /dev/null "$url" 2>&1 | grep "200 OK" | wc -l) = "0" ]]; then
+            echo -e "ppa:"$ppa" does not have a "$dist" version"
+            echo "$ppa" >> "$src"/failed-ppas
         else
-            echo -e "${nl}adding $ppa ${nl}"
-            add-apt-repository -y ppa:$ppa
+            echo -e ""${nl}"adding "$ppa" "${nl}""
+            add-apt-repository -y ppa:"$ppa"
         fi
-    done <<< "$(cat $src/ppa-ubu)"
+    done <<< "$(cat "$src"/ppa-ubu)"
     apt-get update && apt-get "$dpk" dist-upgrade -y
     err_corr
 
     # install packages
-    echo -e "${nl}installing software from the repos and PPAs${nl}"
-    apt-get install "$dpk" -y $(< $src/pkg-ubu)
+    echo -e ""${nl}"installing software from the repos and PPAs"${nl}""
+    apt-get install "$dpk" -y $(< "$src"/pkg-ubu)
     viber_ins
 
     # intel fix
@@ -193,40 +188,39 @@ then
 
     # ruby, python, dotfiles
     pip3 install virtualenv
-    su - $user <<EOF
+    su - "$user" <<EOF
     pip_gem
     unpack_docs
 EOF
 
-    echo -e "${nl}ALL DONE\nPlease check the install logs and then reboot${nl}"
+    echo -e ""${nl}"ALL DONE\nPlease check the install logs and then reboot"${nl}""
 #-]
 
 #   DEBIAN [-
 #   ======
-elif [[ $osver = $deb ]]
-then
+elif [[ "$osver" = "$deb" ]]; then
     # set non-interactive environment
     export DEBIAN_FRONTEND=noninteractive
 
     # update the system
-    echo -e "${nl}updating the system${nl}"
+    echo -e ""${nl}"updating the system"${nl}""
     apt-get update && apt-get "$dpk" dist-upgrade -y
     err_corr
 
     # remove unwanted software
-    echo -e "${nl}removing all unwanted software${nl}"
-    apt-get --purge remove -y $(< $src/pkgrm-ubudeb)
+    echo -e ""${nl}"removing all unwanted software"${nl}""
+    apt-get --purge remove -y $(< "$src"/pkgrm-ubudeb)
     apt-get --purge autoremove -y
 
     # update to Stretch
     mv /etc/apt/sources.list /etc/apt/sources.list.orig
-    echo "$(cat $src/sources-deb)" > /etc/apt/sources.list
+    echo "$(cat "$src"/sources-deb)" > /etc/apt/sources.list
     apt-get update && apt-get "$dpk" dist-upgrade -y
     err_corr
 
     # install packages
-    echo -e "${nl}installing software from the repos${nl}"
-    apt-get "$dpk" install -y $(< $src/pkg-deb)
+    echo -e ""${nl}"installing software from the repos"${nl}""
+    apt-get "$dpk" install -y $(< "$src"/pkg-deb)
     err_corr
     viber_ins
 
@@ -235,16 +229,16 @@ then
 
     # ruby, python, dotfiles
     pip3 install virtualenv
-    su - $user <<EOF
+    su - "$user" <<EOF
     pip_gem
     unpack_docs
 EOF
 
-    echo -e "${nl}ALL DONE\nPlease check the install logs and reboot${nl}"
+    echo -e ""${nl}"ALL DONE\nPlease check the install logs and reboot"${nl}""
 #-]
 
 else
-    echo -e "ERROR: Unrecognized system.\nTarget OSes are:"
-    echo -e "1. $arch\n2. $deb\n3. $ubu\nexiting"
+    echo -e ""${nl}"ERROR: Unrecognized system.\nTarget OSes are:"
+    echo -e "\t1. "$arch"\n\t2. "$deb"\n\t3. "$ubu"\nexiting"${nl}""
     exit 1
 fi
