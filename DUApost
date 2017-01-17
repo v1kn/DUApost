@@ -1,9 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ##
-## post-install script for arch, debian, ubuntu systems
-## https://github.com/v1kn/DUApost
-## 2016/03/26
+##  DUApost
+##      :: post-install script for arch, debian, ubuntu systems
+##  v1kn
+##  https://github.com/v1kn/DUApost
+##  2016/03/26
 ##
 
 #   PREAMBLE [-
@@ -41,15 +43,24 @@ deb="Debian GNU/Linux"
 dpk="-o Dpkg::Options::=\"--force-confdef --force-confold\""
 
 #   intel fix for screen tearing in xfce
-intel=$'Section "Device"\n Identifier "Intel Graphics"\n Driver "Intel"\n Option "AccelMethod" "sna"\n Option "TearFree" "true"\nEndSection'
+intel=$(cat<<EOF
+Section "Device"
+ Identifier "Intel Graphics"
+ Driver "Intel"
+ Option "AccelMethod" "sna"
+ Option "TearFree" "true"
+EndSection
+EOF
+)
 ##-]
-
 ##   Functions [-
 ##   ---------
 
 #   installing intel fix
 intel_ins() {
-    [[ -f /etc/X11/xorg.conf.d/20-intel.conf ]] && mv /etc/X11/xorg.conf.d/20-intel.conf /etc/X11/xorg.conf.d/20-intel.conf.orig
+    [[ -f /etc/X11/xorg.conf.d/20-intel.conf ]] \
+        && mv /etc/X11/xorg.conf.d/20-intel.conf \
+        /etc/X11/xorg.conf.d/20-intel.conf.orig
     [[ ! -d /etc/X11/xorg.conf.d ]] && mkdir -p /etc/X11/xorg.conf.d
     echo -e "$intel" > /etc/X11/xorg.conf.d/20-intel.conf
 }
@@ -58,7 +69,7 @@ intel_ins() {
 pip_gem() {
     cd "$hm" || exit
     echo -e ""${nl}"installing ruby gems"${nl}""
-    gem install --install-dir "$hm"/.local/gem tmuxinator
+    gem install --install-dir "$hm"/.local/gem tmuxinator github-pages
     echo -e ""${nl}"installing pip packages"${nl}""
     virtualenv -p python3 "$hm"/.local/pyvenv
     source "$hm"/.local/pyvenv/bin/activate
@@ -75,22 +86,25 @@ unpack_docs() {
     done
     #mkdir grepo && cd grepo
     #git clone https://github.com/v1kn/dotfiles
-    aunpack -qq -f "$src"/files.7z
-    aunpack -qq -f "$src"/grepo.7z
+    aunpack -qq -f "$src"/dotfiles*.txz
     cd grepo/dotfiles
     while read dotfolder; do
         stow -v -t "$hm" "$dotfolder"
-    done <<< "$(find "$(pwd)" -mindepth 1 -maxdepth 1 -type d | grep -v "\.git" | sort)"
+    done <<< $(find $(pwd) -mindepth 1 -maxdepth 1 -type d \
+        | grep -v "\.git" \
+        | sort)
     cd "$hm" || exit
 }
 viber_ins() {
     cd "$hm" || exit
-    if [[ $(wget "http://download.cdn.viber.com/cdn/desktop/Linux/viber.deb" 2>&1 | grep "200 OK" | wc -l) == "1" ]]
+    if [[ $(wget \
+        "http://download.cdn.viber.com/cdn/desktop/Linux/viber.deb" 2>&1 \
+        | grep "200 OK" | wc -l) == "1" ]]
     then
         dpkg -i viber.deb
         rm viber.deb
     else
-        echo -e ""${nl}"No viber deb file under that URL. Install it manually later"${nl}""
+        echo -e ""${nl}"No viber deb found. Install it manually later"${nl}""
     fi
 }
 
@@ -98,16 +112,16 @@ err_corr() {
     dpkg --configure -a
     apt-get "$dpk" install -y -f
 }
+##-]
 #-]
-#-]
-
 #   ARCH [-
 #   ====
 if [[ "$osver" = "$arch" ]]; then
     # update
     echo -e ""${nl}"updating the system"${nl}""
     reflector -c Poland -l 10 -f 5 --save /etc/pacman.d/mirrorlist
-    pacman -Syyu --noconfirm
+    # (--ask 36) is an undocumented flag that handles conflicts
+    pacman -Syyu --ask 36 --noconfirm
 
     # install official software
     echo -e ""${nl}"installing missing software from the repos"${nl}""
@@ -144,7 +158,6 @@ EOF
 
     echo -e ""${nl}"ALL DONE\nPlease check the install logs and then reboot"${nl}""
 #-]
-
 #   UBUNTU [-
 #   ======
 elif [[ "$osver" = "$ubu" ]]; then
@@ -167,14 +180,15 @@ elif [[ "$osver" = "$ubu" ]]; then
     echo -e "checking if all PPAs are compatible with "$dist" "${nl}""
     while read -r ppa; do
         url="http://ppa.launchpad.net/"$ppa"/ubuntu/dists/"$dist"/"
-        if [[ $(wget -O /dev/null "$url" 2>&1 | grep "200 OK" | wc -l) = "0" ]]; then
+        if [[ $(wget -O /dev/null "$url" 2>&1 | grep "200 OK" | wc -l) = "0" ]]
+        then
             echo -e "ppa:"$ppa" does not have a "$dist" version"
             echo "$ppa" >> "$src"/failed-ppas
         else
             echo -e ""${nl}"adding "$ppa" "${nl}""
             add-apt-repository -y ppa:"$ppa"
         fi
-    done <<< "$(cat "$src"/ppa-ubu)"
+    done < "$src"/ppa-ubu
     apt-get update && apt-get "$dpk" dist-upgrade -y
     err_corr
 
@@ -186,6 +200,10 @@ elif [[ "$osver" = "$ubu" ]]; then
     # intel fix
     intel_ins
 
+    # mountpoint fix
+    [[ -d /media/"$user" ]] && rmdir /media/"$user"
+    ln -s /media /media/"$user"
+
     # ruby, python, dotfiles
     pip3 install virtualenv
     su - "$user" <<EOF
@@ -195,7 +213,6 @@ EOF
 
     echo -e ""${nl}"ALL DONE\nPlease check the install logs and then reboot"${nl}""
 #-]
-
 #   DEBIAN [-
 #   ======
 elif [[ "$osver" = "$deb" ]]; then
@@ -214,7 +231,7 @@ elif [[ "$osver" = "$deb" ]]; then
 
     # update to Stretch
     mv /etc/apt/sources.list /etc/apt/sources.list.orig
-    echo "$(cat "$src"/sources-deb)" > /etc/apt/sources.list
+    cp "$src"/sources-deb /etc/apt/sources.list
     apt-get update && apt-get "$dpk" dist-upgrade -y
     err_corr
 
@@ -227,6 +244,10 @@ elif [[ "$osver" = "$deb" ]]; then
     # intel fix
     intel_ins
 
+    # mountpoint fix
+    [[ -d /media/"$user" ]] && rmdir /media/"$user"
+    ln -s /media /media/"$user"
+
     # ruby, python, dotfiles
     pip3 install virtualenv
     su - "$user" <<EOF
@@ -236,7 +257,6 @@ EOF
 
     echo -e ""${nl}"ALL DONE\nPlease check the install logs and reboot"${nl}""
 #-]
-
 else
     echo -e ""${nl}"ERROR: Unrecognized system.\nTarget OSes are:"
     echo -e "\t1. "$arch"\n\t2. "$deb"\n\t3. "$ubu"\nexiting"${nl}""

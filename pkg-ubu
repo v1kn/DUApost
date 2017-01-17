@@ -75,6 +75,7 @@ file-roller
 findutils
 finger
 firefox
+firejail
 flac
 fontforge
 font-manager
@@ -300,3 +301,4 @@ xfce4-whiskermenu-plugin
 xfce4-xkb-plugin
 xfce4-terminal
 zathura
+zlib1g-dev
