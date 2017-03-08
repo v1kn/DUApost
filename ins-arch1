@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# partitions
+parted -s -a optimal /dev/sda mklabel gpt
+parted -s -a optimal mkpart esp fat32 1MiB 513MiB
+parted -s -a optimal mkpart primary 513MiB 100%
+parted -s name 1 esp
+parted -s name 2 lvm
+parted -s set 2 lvm on
+
+# lvm
+pvcreate /dev/sda2
+vgcreate vd0 /dev/sda2
+lvcreate -L 2G vd0/swap
+lvcreate -L 2G vd0/home
+lvcreate -L 15G vd0/root
+
+# filesystem
+mkfs.vfat -F32 /dev/sda1
+mkswap /dev/vd0/swap
+swapon /dev/vd0/swap
+mkfs.ext4 /dev/vd0/home
+mkfs.ext4 /dev/vd0/root
+
+# mount
+mount /dev/vd0/root /mnt
+mkdir -p /mnt/home
+mkdir -p /mnt/boot
+mount /dev/sda1 /mnt/boot
+mount /dev/vd0/home /mnt/home
+
+# mirror & strap
+pacman -Syy
+pacman -S reflector --noconfirm
+reflector -c Poland -l 10 -f 5 --save /etc/pacman.d/mirrorlist
+pacstrap /mnt base base-devel vim git bash-completion linux-lts
+
+# finish
+genfstab -U /mnt >> /mnt/etc/fstab

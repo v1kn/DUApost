@@ -218,6 +218,7 @@ python3-chardet
 python3-pip
 qbittorrent
 qt4-qtconfig
+qt5-style-plugins
 qt5ct
 ranger
 recoll

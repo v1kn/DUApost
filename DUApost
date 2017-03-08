@@ -125,18 +125,17 @@ if [[ "$osver" = "$arch" ]]; then
 
     # install official software
     echo -e ""${nl}"installing missing software from the repos"${nl}""
-    pacman -S --noconfirm $(< "$src"/pkg-arch)
+    pacman -S --ask 36 --noconfirm $(< "$src"/pkg-arch)
 
     # system tweaks
     echo -e ""${nl}"tweaking the system"${nl}""
     intel_ins       # intel tear fix
     echo "blacklist pcspkr" > /etc/modprobe.d/nobeep.conf #unloading pcspkr module
-    pip install virtualenv      # install virtualenv
 
     # pacaur
     echo -e ""${nl}"installing pacaur"${nl}""
-    gpg --keyserver hkp://pgp.mit.edu --recv-keys 1EB2638FF56C0C53
     su - "$user" <<EOF
+    gpg --keyserver hkp://pgp.mit.edu --recv-keys 1EB2638FF56C0C53
     cd "$hm" || exit
     git clone https://aur.archlinux.org/cower.git
     cd cower
@@ -149,7 +148,7 @@ if [[ "$osver" = "$arch" ]]; then
 
     # install AUR packages
     echo -e ""${nl}"installing packages from the AUR"${nl}""
-    pacaur -ayu --noedit --noconfirm $(< "$src"/pkg-arch-aur)
+    pacaur -ayu --noedit --noconfirm "$(< "$src"/pkg-arch-aur)"
 
     # ruby and python packages, dotfiles
     pip_gem

@@ -3,7 +3,6 @@ alsa-utils
 android-file-transfer
 android-tools
 android-udev
-anki
 arandr
 arch-install-scripts
 atool
@@ -14,7 +13,7 @@ ca-certificates
 ccrypt
 cdparanoia
 chromium
-clementine or gmusicbrowser or other
+clementine
 colordiff
 cmus
 cpupower
@@ -31,6 +30,7 @@ faac
 faad2
 fakeroot
 fcitx
+fcitx-configtool
 fcitx-gtk2
 fcitx-gtk3
 fcitx-mozc
@@ -92,6 +92,8 @@ perl
 pavucontrol
 pulseaudio
 pulseaudio-alsa
+python-pip
+python-virtualenv
 qt5ct
 ranger
 reflector
