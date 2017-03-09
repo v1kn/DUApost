@@ -117,6 +117,9 @@ if [[ "$osver" = "$arch" ]]; then
     # install official software
     echo -e "${nl}installing missing software from the repos${nl}"
     pacman -S --noconfirm $(< "$src"/pkg-arch)
+    mkinitcpio -p linux
+    mkinitcpio -p linux-lts
+    grub-mkconfig -o /boot/grub/grub.cfg
 
     # system tweaks
     echo -e "${nl}tweaking the system${nl}"
