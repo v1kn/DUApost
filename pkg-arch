@@ -73,7 +73,6 @@ lsof
 make
 mp3gain
 mpv
-multilib-devel
 ncdu
 neovim
 net-tools
@@ -98,6 +97,7 @@ ranger
 reflector
 rofi
 rsync
+ruby
 sleuthkit
 steam
 terminator

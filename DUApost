@@ -77,7 +77,7 @@ pip_gem() {
     echo -e "${nl}installing pip packages${nl}"
     virtualenv -p python3 "$hm"/.local/pyvenv
     source "$hm"/.local/pyvenv/bin/activate
-    pip3 install $(< "$src"/pkg-pip)
+    pip3 install -r "$src"/pkg-pip
     deactivate
 }
 viber_ins() {
@@ -106,13 +106,14 @@ if [[ "$osver" = "$arch" ]]; then
     echo -e "${nl}updating the system${nl}"
     reflector -c "$country" -l 10 -f 5 --save /etc/pacman.d/mirrorlist
     # (--ask 36) is an undocumented flag that handles conflicts
-    if [[ "$vga" = [nN]vidia ]], then
+    if [[ "$vga" = [nN]vidia ]]; then
         pacman -S nvidia-libgl --noconfirm
     else
         pacman -S mesa-libgl --noconfirm
     fi
     pacman -Rns vim --noconfirm
     pacman -Syyu --noconfirm
+    pacman -S multilib-devel --noconfirm --ask 36
 
     # install official software
     echo -e "${nl}installing missing software from the repos${nl}"

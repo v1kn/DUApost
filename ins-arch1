@@ -33,7 +33,7 @@ mount /dev/vd0/home /mnt/home
 pacman -Syy
 pacman -S reflector --noconfirm
 reflector -c Poland -l 10 -f 5 --save /etc/pacman.d/mirrorlist
-pacstrap /mnt base{,-devel} vim git bash-completion
+pacstrap /mnt base{,-devel} vim git bash-completion grub os-prober efibootmgr reflector
 
 # finish
 genfstab -U /mnt >> /mnt/etc/fstab
