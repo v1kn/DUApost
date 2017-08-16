@@ -1,3 +1,29 @@
+discord
+wget -O discord-0.0.1.deb https://discordapp.com/api/download?platform=linux&format=deb
+
+aegisub
+agent-transfer
+bbswitch-dkms
+brltty
+ccnet
+cromium codecs ffmpeg
+exfat
+fonts-croscore
+fonts-hanazono
+fonts-lato
+gnome twitch player
+keepassxc
+mpc123
+musepack-tools
+nemo
+papirus icon theme
+pepper flashplugin nonfree
+picard
+seafile
+syncthing
+wmctrl
+
+
 abook --> ncurses address book
 accountsservice
 acetoneiso (ubu) acetoneiso2 (arch)
