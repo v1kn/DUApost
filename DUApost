@@ -25,7 +25,7 @@ mkdir -p "$src"/saved-dots
 exec 1> >(tee -a "$src"/post.log)
 exec 2> >(tee -a "$src"/post_err.log)
 
-#   date, username
+#   Q&A
 echo -e "${nl}"
 date
 echo -e "\nenter username:"
@@ -44,7 +44,7 @@ arch="Arch Linux"
 deb="Debian GNU/Linux"
 
 #   specify dpkg action when updating config files during installation
-dpk="-o Dpkg::Options::=\"--force-confdef --force-confold\""
+dpk="-o Dpkg::Options::=\"--force-confdef --force-confnew\""
 
 #   intel fix for screen tearing in xfce
 intel=$(cat<<EOF
@@ -71,7 +71,7 @@ intel_ins() {
 
 #   install ruby and python packages as normal user
 pip_gem() {
-    cd "$hm" || exit
+    cd "$hm"
     echo -e "${nl}installing ruby gems${nl}"
     gem install --install-dir "$hm"/.local/gem tmuxinator github-pages
     echo -e "${nl}installing pip packages${nl}"
@@ -81,7 +81,7 @@ pip_gem() {
     deactivate
 }
 viber_ins() {
-    cd "$hm" || exit
+    cd "$hm"
     if [[ $(wget \
         "http://download.cdn.viber.com/cdn/desktop/Linux/viber.deb" 2>&1 \
         | grep "200 OK" | wc -l) == "1" ]]
@@ -200,6 +200,21 @@ elif [[ "$osver" = "$ubu" ]]; then
     # ruby, python, dotfiles
     su - "$user" <<EOF
     pip_gem
+
+    mkdir "$hm"/grepo
+    cd grepo
+    git clone https://github.com/v1kn/bin
+    cd "$hm"
+
+    mkdir -p "$hm"/.local/bin
+    dirs="$hm/grepo/bin $hm/.local/pyvenv/bin $hm/.gem/ruby/2.3.0/bin"
+    find "$dirs" \
+        -follow \
+        -mindepth 1 \
+        -maxdepth 1 \
+        -type f \
+        -executable \
+        -exec ln -s {} "$hm"/.local/bin \;
 EOF
 
     echo -e "${nl}ALL DONE\nPlease check the install logs and then reboot${nl}"

@@ -1,0 +1,51 @@
+======
+wget
+======
+skypeforlinux
+https://repo.skype.com/latest/skypeforlinux-64.deb
+
+uget-chrome-wrapper
+https://github.com/slgobinath/uget-chrome-wrapper/releases/download/v2.0.4/uget-chrome-wrapper_2.0.4-1_amd64.deb
+
+viber
+http://download.cdn.viber.com/cdn/desktop/Linux/viber.deb
+
+google-chrome
+https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+
+======
+other
+======
+maybe rofi instead of alfred?
+
+ms-sys
+https://sourceforge.net/projects/ms-sys/files/
+
+nvidia-settings (pc dependent)
+
+tlp (system dependent?)
+
+wget -O discord.deb https://discordapp.com/api/download?platform=linux&format=deb
+
+======
+pip
+======
+AdvancedSearchDiscovery
+tmuxomatic
+securityheaders => Fetch Security Headers for a specific URL using securityheaders.io
+myougiden => A Japanese/English dictionary for the command line, colorful and full of features
+subsystem => Download and process subtitle files in batch
+dnuos => A tool for creating lists of music collections
+yanktv => Yank torrents for the latest episodes of your tv shows.
+alarm => CLI Alarm Clock
+orochi => A command line client for 8tracks.com.
+episoder => TV episode notifier
+movierenamer => Command-line utility to organize movies (py2)
+pymovieinfo => Get information about any movie from the command line
+pytrailer, pyqtrailer => get trailers from apple; not working currently
+subseek => Search subtitles for all your movies and series with a single command line script
+TorrentMediaSearcher => Fetches TV and movie magnet links from various torrent providers
+IMDbPY => Python package to access the IMDb's database
+k2flix => Create beautiful quicklook movies from the pixel data observed by NASA's Kepler spacecraft.
+mnamr => Movie folder renamer
+tarantula => Movie Indexer

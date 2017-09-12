@@ -1,48 +1,16 @@
-anki --> exists for jessie and sid, none for stretch
-
-no arc-theme
-
-autopsy --> for jessie and sid, not stretch
-
-chromium (not chromium-browser)
-
 no ttf-ubuntu-font-family
-
-no greybird-gtk-theme
-
-handbrake handbrake-cli (no handbrake-gtk outside of ppa)
 
 no indicator-cpufreq; has to use cpufrequtils instead
 
-keepassx or keepass2?
+keepassx, no keepassxc
 
-no language packs; instead, maybe separate packages like:
-libreoffice-l10n-ja libreoffice-l10n-pl chromium-l10n firefox-esr-l10n-ja firefox-esr-l10n-pl
-
-for libdvdcss2 either install unofficial debian multimedia repo, or compile from source from videolan website
-https://wiki.debian.org/CDDVD#DVD
 to install truly automatically:
 sudo DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::"--force-confnew" apt-get --assume-yes libdvd-pkg
 sudo dpkg-reconfigure -fnoninteractive -phigh libdvd-pkg
 
 linux-headers-amd64
 
-luakit or surf
-
-no lxsplit
-
-no mp3gain
-
-
-no neovim :(
-https://github.com/neovim/neovim/wiki/Building-Neovim#build-prerequisites
-https://github.com/neovim/neovim/wiki/Building-Neovim#debian
 no numix
-
-no skype
 
 steam --> need to add a 32bit arch suuport):
 sudo dpkg --add-architecture i386; apt update; apt install steam
-no syncthing
-
-tmuxinator is available in the repos
