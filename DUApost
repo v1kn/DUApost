@@ -60,7 +60,11 @@ EOF
 ##   Functions [-
 ##   ---------
 
-#   installing intel fix
+#   installing gpu fix
+nvidia_ins(){
+    nvidia-settings --assign CurrentMetaMode="nvidia-auto-select +0+0 { ForceFullCompositionPipeline = On }"
+    systemd service?
+}
 intel_ins() {
     [[ -f /etc/X11/xorg.conf.d/20-intel.conf ]] \
         && mv /etc/X11/xorg.conf.d/20-intel.conf \
@@ -68,34 +72,70 @@ intel_ins() {
     [[ ! -d /etc/X11/xorg.conf.d ]] && mkdir -p /etc/X11/xorg.conf.d
     echo -e "$intel" > /etc/X11/xorg.conf.d/20-intel.conf
 }
+gpu_ins(){}
 
-#   install ruby and python packages as normal user
-pip_gem() {
+#   install ruby, python packages and dots as normal user
+pyrubydot_ins() {
     cd "$hm"
+    mkdir -p "$hm"/grepo "$hm"/.local/bin
+
     echo -e "${nl}installing ruby gems${nl}"
-    gem install --install-dir "$hm"/.local/gem tmuxinator github-pages
+    gem install --user-install tmuxinator github-pages
+
     echo -e "${nl}installing pip packages${nl}"
     virtualenv -p python3 "$hm"/.local/pyvenv
     source "$hm"/.local/pyvenv/bin/activate
     pip3 install -r "$src"/pkg-pip
     deactivate
-}
-viber_ins() {
+
+    echo -e "${nl}aggregating user binaries${nl}"
+    cd "$hm"/grepo
+    git clone https://github.com/v1kn/bin
     cd "$hm"
-    if [[ $(wget \
-        "http://download.cdn.viber.com/cdn/desktop/Linux/viber.deb" 2>&1 \
-        | grep "200 OK" | wc -l) == "1" ]]
-    then
-        dpkg -i viber.deb
-        rm viber.deb
-    else
-        echo -e "${nl}No viber deb found. Install it manually later${nl}"
-    fi
+    local dirs=""$hm"/grepo/bin "$hm"/.local/pyvenv/bin "$hm"/.gem/ruby/2.3.0/bin"
+    find "$dirs" \
+        -follow \
+        -mindepth 1 \
+        -maxdepth 1 \
+        -type f \
+        -executable \
+        -exec ln -s {} "$hm"/.local/bin \;
+}
+wget_ins() {
+    mkdir -p "$hm"/debs
+    cd "$hm"/debs
+    while read sftwr; do
+        wget "$sftwr"
+    done < "$src"/pkg-wget
+    gdebi --n --q *.deb
+    cd "$hm"
+    rm -rf debs
+}
+
+systemd_ins() {
+    [[ -d "$hm"/grepo/bin ]]
+
 }
 
 err_corr() {
     dpkg --configure -a
     apt-get "$dpk" install -y -f
+}
+
+spotsync_ins() {
+    apt-key adv \
+        --keyserver hkp://keyserver.ubuntu.com:80 \
+        --recv-keys \
+            BBEBDCB318AD50EC6865090613B00F1FD2C19886 \
+            0DF731E45CE24F27EEEB1450EFDC8610341D9410
+    curl -s https://syncthing.net/release-key.txt | sudo apt-key add -
+    echo deb http://repository.spotify.com stable non-free \
+        | tee /etc/apt/sources.list.d/spotify.list
+    echo "deb https://apt.syncthing.net/ syncthing stable" \
+        | tee /etc/apt/sources.list.d/syncthing.list
+    apt-get update
+    apt-get "$dpk" install -y spotify-client syncthing
+    err_corr
 }
 ##-]
 #-]
@@ -185,37 +225,24 @@ elif [[ "$osver" = "$ubu" ]]; then
     apt-get update && apt-get "$dpk" dist-upgrade -y
     err_corr
 
-    # install packages
-    echo -e "${nl}installing software from the repos and PPAs${nl}"
+    # installing software
+    echo -e "${nl}installing software${nl}"
     apt-get install "$dpk" -y $(< "$src"/pkg-ubu)
-    viber_ins
-
-    # intel fix
-    intel_ins
-
-    # mountpoint fix
-    [[ -d /media/"$user" ]] && rmdir /media/"$user"
-    ln -s /media /media/"$user"
-
-    # ruby, python, dotfiles
+    apt-get install "$dpk" -y $(< "$src"/pkg-ppa)
+    snap install $(< "$src"/pkg-snap)
+    wget_ins
+    spotify_ins
     su - "$user" <<EOF
-    pip_gem
-
-    mkdir "$hm"/grepo
-    cd grepo
-    git clone https://github.com/v1kn/bin
-    cd "$hm"
-
-    mkdir -p "$hm"/.local/bin
-    dirs="$hm/grepo/bin $hm/.local/pyvenv/bin $hm/.gem/ruby/2.3.0/bin"
-    find "$dirs" \
-        -follow \
-        -mindepth 1 \
-        -maxdepth 1 \
-        -type f \
-        -executable \
-        -exec ln -s {} "$hm"/.local/bin \;
+    pyrubydot_ins
 EOF
+
+    # system tweaks
+    echo -e "${nl}performing system tweaks${nl}"
+    gpu_ins
+    systemd_ins
+    [[ -d /media/"$user" ]] \
+        && rmdir /media/"$user" \
+        && ln -s /media /media/"$user"
 
     echo -e "${nl}ALL DONE\nPlease check the install logs and then reboot${nl}"
 #-]

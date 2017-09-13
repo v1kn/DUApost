@@ -1,17 +1,8 @@
 ======
 wget
 ======
-skypeforlinux
-https://repo.skype.com/latest/skypeforlinux-64.deb
-
 uget-chrome-wrapper
 https://github.com/slgobinath/uget-chrome-wrapper/releases/download/v2.0.4/uget-chrome-wrapper_2.0.4-1_amd64.deb
-
-viber
-http://download.cdn.viber.com/cdn/desktop/Linux/viber.deb
-
-google-chrome
-https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 
 ======
 other
