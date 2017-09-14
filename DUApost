@@ -101,6 +101,14 @@ pyrubydot_ins() {
         -executable \
         -exec ln -s {} "$hm"/.local/bin \;
 }
+dots_ins() {
+    cd "$hm"/grepo
+    git clone https://github.com/v1kn/dotfiles
+    while read stowdir; do
+        stow -d "$hm"/grepo/dotfiles -t "$hm" "$stowdir"
+    done < "$hm"/pkg-stow
+}
+
 wget_ins() {
     mkdir -p "$hm"/debs
     cd "$hm"/debs
@@ -113,29 +121,30 @@ wget_ins() {
 }
 
 systemd_ins() {
-    [[ -d "$hm"/grepo/bin ]]
+    [[ -d "$hm"/grepo/dotfiles ]]
 
 }
 
-err_corr() {
+dpkg_fix() {
     dpkg --configure -a
     apt-get "$dpk" install -y -f
 }
 
-spotsync_ins() {
+spotsubl_ins() {
     apt-key adv \
         --keyserver hkp://keyserver.ubuntu.com:80 \
         --recv-keys \
             BBEBDCB318AD50EC6865090613B00F1FD2C19886 \
             0DF731E45CE24F27EEEB1450EFDC8610341D9410
-    curl -s https://syncthing.net/release-key.txt | sudo apt-key add -
+    wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg \
+        | sudo apt-key add -
     echo deb http://repository.spotify.com stable non-free \
         | tee /etc/apt/sources.list.d/spotify.list
-    echo "deb https://apt.syncthing.net/ syncthing stable" \
-        | tee /etc/apt/sources.list.d/syncthing.list
+    echo "deb https://download.sublimetext.com/ apt/dev/" \
+        | tee /etc/apt/sources.list.d/sublime-text.list
     apt-get update
-    apt-get "$dpk" install -y spotify-client syncthing
-    err_corr
+    apt-get "$dpk" install -y spotify-client sublime-text
+    dpkg_fix
 }
 ##-]
 #-]
@@ -200,7 +209,7 @@ elif [[ "$osver" = "$ubu" ]]; then
     # update
     echo -e "${nl}updating the system${nl}"
     apt-get update && apt-get "$dpk" dist-upgrade -y
-    err_corr
+    dpkg_fix
 
     # remove unwanted software
     echo -e "${nl}removing all unwanted software${nl}"
@@ -223,7 +232,7 @@ elif [[ "$osver" = "$ubu" ]]; then
         fi
     done < "$src"/ppa-ubu
     apt-get update && apt-get "$dpk" dist-upgrade -y
-    err_corr
+    dpkg_fix
 
     # installing software
     echo -e "${nl}installing software${nl}"
@@ -231,7 +240,7 @@ elif [[ "$osver" = "$ubu" ]]; then
     apt-get install "$dpk" -y $(< "$src"/pkg-ppa)
     snap install $(< "$src"/pkg-snap)
     wget_ins
-    spotify_ins
+    spotsubl_ins
     su - "$user" <<EOF
     pyrubydot_ins
 EOF
@@ -255,7 +264,7 @@ elif [[ "$osver" = "$deb" ]]; then
     # update the system
     echo -e "${nl}updating the system${nl}"
     apt-get update && apt-get "$dpk" dist-upgrade -y
-    err_corr
+    dpkg_fix
 
     # remove unwanted software
     echo -e "${nl}removing all unwanted software${nl}"
@@ -266,12 +275,12 @@ elif [[ "$osver" = "$deb" ]]; then
     mv /etc/apt/sources.list /etc/apt/sources.list.orig
     cp "$src"/sources-deb /etc/apt/sources.list
     apt-get update && apt-get "$dpk" dist-upgrade -y
-    err_corr
+    dpkg_fix
 
     # install packages
     echo -e "${nl}installing software from the repos${nl}"
     apt-get "$dpk" install -y $(< "$src"/pkg-deb)
-    err_corr
+    dpkg_fix
     viber_ins
 
     # intel fix
