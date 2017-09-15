@@ -16,10 +16,8 @@
 
 #   beautify echo messages
 nl=$'\n==========\n'
-
 #   define parent dir of the script
 src=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ) || exit
-mkdir -p "$src"/saved-dots
 
 #   redirect errors and output to logs
 exec 1> >(tee -a "$src"/post.log)
@@ -32,10 +30,21 @@ echo -e "\nenter username:"
 read user
 echo -e "\nenter country:"
 read country
-echo -e "\nenter graphics:"
-read vga
 echo -e "\nwelcome "$user". proceeding with the installation${nl}"
 hm="/home/"$user""
+
+#   create necessaty folders
+mkdir -p \
+    "$hm"/.local/bin
+    "$hm"/grepo
+    "$hm"/debs
+[[ ! -d /etc/X11/xorg.conf.d ]] && mkdir -p /etc/X11/xorg.conf.d
+
+#   clone necessary repos
+cd "$hm"/grepo
+git clone https://github.com/v1kn/bin
+git clone https://github.com/v1kn/dotfiles
+
 
 #   OS versions
 osver=$(cat /etc/os-release | grep "^NAME" | cut -d\" -f 2)
@@ -61,24 +70,21 @@ EOF
 ##   ---------
 
 #   installing gpu fix
-nvidia_ins(){
-    nvidia-settings --assign CurrentMetaMode="nvidia-auto-select +0+0 { ForceFullCompositionPipeline = On }"
-    systemd service?
+nvidia_chk(){
+    [[ lshw -C display | grep vendor | cut -d\: -f2 = "NVIDIA Corporation" ]]
+        && local nvidia=1
+        || local nvidia=0
 }
 intel_ins() {
     [[ -f /etc/X11/xorg.conf.d/20-intel.conf ]] \
         && mv /etc/X11/xorg.conf.d/20-intel.conf \
         /etc/X11/xorg.conf.d/20-intel.conf.orig
-    [[ ! -d /etc/X11/xorg.conf.d ]] && mkdir -p /etc/X11/xorg.conf.d
     echo -e "$intel" > /etc/X11/xorg.conf.d/20-intel.conf
 }
-gpu_ins(){}
 
 #   install ruby, python packages and dots as normal user
-pyrubydot_ins() {
+pyruby_ins() {
     cd "$hm"
-    mkdir -p "$hm"/grepo "$hm"/.local/bin
-
     echo -e "${nl}installing ruby gems${nl}"
     gem install --user-install tmuxinator github-pages
 
@@ -87,11 +93,9 @@ pyrubydot_ins() {
     source "$hm"/.local/pyvenv/bin/activate
     pip3 install -r "$src"/pkg-pip
     deactivate
-
+}
+bin_ins() {
     echo -e "${nl}aggregating user binaries${nl}"
-    cd "$hm"/grepo
-    git clone https://github.com/v1kn/bin
-    cd "$hm"
     local dirs=""$hm"/grepo/bin "$hm"/.local/pyvenv/bin "$hm"/.gem/ruby/2.3.0/bin"
     find "$dirs" \
         -follow \
@@ -101,16 +105,30 @@ pyrubydot_ins() {
         -executable \
         -exec ln -s {} "$hm"/.local/bin \;
 }
-dots_ins() {
-    cd "$hm"/grepo
-    git clone https://github.com/v1kn/dotfiles
+dot_ins() {
     while read stowdir; do
         stow -d "$hm"/grepo/dotfiles -t "$hm" "$stowdir"
     done < "$hm"/pkg-stow
 }
-
+systemd_ins() {
+    chattr +i "$hm"/grepo/bin/sbin
+    ln -s "$hm"/grepo/bin/sbin/* /usr/local/bin/*
+    cp "$hm"/grepo/dotfiles/etc/systemd/* /etc/systemd/system/
+    while read serv; do
+        systemctl enable "$serv"
+        systemctl start "$serv"
+    done < "$hm"/services-system
+}
+systemd_user_ins() {
+   [[ "$nvidia" = 1 ]] \
+       && systemctl --user enable nvidia.service \
+       && rm "$hm"/.Xauthority; systemctl --user start nvidia.service
+   while read serv; do
+       systemctl --user enable "$serv"
+       systemctl --user start "$serv"
+   done < "$hm"/services-user
+}
 wget_ins() {
-    mkdir -p "$hm"/debs
     cd "$hm"/debs
     while read sftwr; do
         wget "$sftwr"
@@ -119,17 +137,6 @@ wget_ins() {
     cd "$hm"
     rm -rf debs
 }
-
-systemd_ins() {
-    [[ -d "$hm"/grepo/dotfiles ]]
-
-}
-
-dpkg_fix() {
-    dpkg --configure -a
-    apt-get "$dpk" install -y -f
-}
-
 spotsubl_ins() {
     apt-key adv \
         --keyserver hkp://keyserver.ubuntu.com:80 \
@@ -140,11 +147,15 @@ spotsubl_ins() {
         | sudo apt-key add -
     echo deb http://repository.spotify.com stable non-free \
         | tee /etc/apt/sources.list.d/spotify.list
-    echo "deb https://download.sublimetext.com/ apt/dev/" \
+    echo "deb https://download.sublimetext.com/ apt/stable/" \
         | tee /etc/apt/sources.list.d/sublime-text.list
     apt-get update
     apt-get "$dpk" install -y spotify-client sublime-text
     dpkg_fix
+}
+dpkg_fix() {
+    dpkg --configure -a
+    apt-get "$dpk" install -y -f
 }
 ##-]
 #-]
@@ -230,28 +241,34 @@ elif [[ "$osver" = "$ubu" ]]; then
             echo -e "${nl}adding "$ppa" ${nl}"
             add-apt-repository -y ppa:"$ppa"
         fi
-    done < "$src"/ppa-ubu
+    done < "$src"/sources-ppa
     apt-get update && apt-get "$dpk" dist-upgrade -y
     dpkg_fix
 
     # installing software
     echo -e "${nl}installing software${nl}"
     apt-get install "$dpk" -y $(< "$src"/pkg-ubu)
-    apt-get install "$dpk" -y $(< "$src"/pkg-ppa)
+    apt-get install "$dpk" -y $(< "$src"/pkg-ubu-ppa)
     snap install $(< "$src"/pkg-snap)
     wget_ins
     spotsubl_ins
-    su - "$user" <<EOF
-    pyrubydot_ins
-EOF
 
     # system tweaks
     echo -e "${nl}performing system tweaks${nl}"
-    gpu_ins
+    nvidia_chk
+    [[ "$nvidia" = 0 ]] && intel_ins
     systemd_ins
     [[ -d /media/"$user" ]] \
         && rmdir /media/"$user" \
         && ln -s /media /media/"$user"
+
+    # user-specific tweaks
+    su - "$user" <<EOF
+    pyruby_ins
+    bin_ins
+    dot_ins
+    systemd_user_ins
+EOF
 
     echo -e "${nl}ALL DONE\nPlease check the install logs and then reboot${nl}"
 #-]
