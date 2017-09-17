@@ -69,7 +69,6 @@ EOF
 ##   Functions [-
 ##   ---------
 
-#   installing gpu fix
 nvidia_chk(){
     [[ lshw -C display | grep vendor | cut -d\: -f2 = "NVIDIA Corporation" ]]
         && local nvidia=1
@@ -81,8 +80,6 @@ intel_ins() {
         /etc/X11/xorg.conf.d/20-intel.conf.orig
     echo -e "$intel" > /etc/X11/xorg.conf.d/20-intel.conf
 }
-
-#   install ruby, python packages and dots as normal user
 pyruby_ins() {
     cd "$hm"
     echo -e "${nl}installing ruby gems${nl}"
@@ -121,11 +118,11 @@ systemd_ins() {
 }
 systemd_user_ins() {
    [[ "$nvidia" = 1 ]] \
-       && systemctl --user enable nvidia.service \
-       && rm "$hm"/.Xauthority; systemctl --user start nvidia.service
-   while read serv; do
-       systemctl --user enable "$serv"
-       systemctl --user start "$serv"
+       && systemctl --user enable nvidia.timer \
+       && systemctl --user start nvidia.service
+   while read serv_user; do
+       systemctl --user enable "$serv_user"
+       systemctl --user start "$serv_user"
    done < "$hm"/services-user
 }
 wget_ins() {
