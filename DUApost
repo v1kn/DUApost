@@ -70,9 +70,9 @@ EOF
 ##   ---------
 
 nvidia_chk(){
-    [[ lshw -C display | grep vendor | cut -d\: -f2 = "NVIDIA Corporation" ]]
-        && local nvidia=1
-        || local nvidia=0
+    [[ $(lshw -quiet -C display | grep vendor | cut -d\: -f2) = "NVIDIA Corporation" ]] \
+        && nvidia=1 \
+        || nvidia=0
 }
 intel_ins() {
     [[ -f /etc/X11/xorg.conf.d/20-intel.conf ]] \
@@ -80,55 +80,21 @@ intel_ins() {
         /etc/X11/xorg.conf.d/20-intel.conf.orig
     echo -e "$intel" > /etc/X11/xorg.conf.d/20-intel.conf
 }
-pyruby_ins() {
-    cd "$hm"
-    echo -e "${nl}installing ruby gems${nl}"
-    gem install --user-install tmuxinator github-pages
-
-    echo -e "${nl}installing pip packages${nl}"
-    virtualenv -p python3 "$hm"/.local/pyvenv
-    source "$hm"/.local/pyvenv/bin/activate
-    pip3 install -r "$src"/pkg-pip
-    deactivate
-}
-bin_ins() {
-    echo -e "${nl}aggregating user binaries${nl}"
-    local dirs=""$hm"/grepo/bin "$hm"/.local/pyvenv/bin "$hm"/.gem/ruby/2.3.0/bin"
-    find "$dirs" \
-        -follow \
-        -mindepth 1 \
-        -maxdepth 1 \
-        -type f \
-        -executable \
-        -exec ln -s {} "$hm"/.local/bin \;
-}
-dot_ins() {
-    while read stowdir; do
-        stow -d "$hm"/grepo/dotfiles -t "$hm" "$stowdir"
-    done < "$hm"/pkg-stow
-}
 systemd_ins() {
     chattr +i "$hm"/grepo/bin/sbin
-    ln -s "$hm"/grepo/bin/sbin/* /usr/local/bin/*
+    while read file; do
+        ln -s "$file" /usr/local/bin/
+    done <<< $(find "$hm"/grepo/bin/sbin -depth -type f)
     cp "$hm"/grepo/dotfiles/etc/systemd/* /etc/systemd/system/
     while read serv; do
         systemctl enable "$serv"
         systemctl start "$serv"
     done < "$hm"/services-system
 }
-systemd_user_ins() {
-   [[ "$nvidia" = 1 ]] \
-       && systemctl --user enable nvidia.timer \
-       && systemctl --user start nvidia.service
-   while read serv_user; do
-       systemctl --user enable "$serv_user"
-       systemctl --user start "$serv_user"
-   done < "$hm"/services-user
-}
 wget_ins() {
     cd "$hm"/debs
     while read sftwr; do
-        wget "$sftwr"
+        wget -q "$sftwr"
     done < "$src"/pkg-wget
     gdebi --n --q *.deb
     cd "$hm"
@@ -221,7 +187,7 @@ elif [[ "$osver" = "$ubu" ]]; then
 
     # remove unwanted software
     echo -e "${nl}removing all unwanted software${nl}"
-    apt-get --purge remove -y $(< "$src"/pkgrm-ubudeb)
+    apt-get --purge remove -y $(< "$src"/pkgrm-ubudeb) || exit
     apt-get --purge autoremove -y
 
     # check if PPAs are available for this ubuntu version
@@ -244,11 +210,11 @@ elif [[ "$osver" = "$ubu" ]]; then
 
     # installing software
     echo -e "${nl}installing software${nl}"
-    apt-get install "$dpk" -y $(< "$src"/pkg-ubu)
-    apt-get install "$dpk" -y $(< "$src"/pkg-ubu-ppa)
-    snap install $(< "$src"/pkg-snap)
-    wget_ins
-    spotsubl_ins
+    apt-get install "$dpk" -y $(< "$src"/pkg-ubu) || exit
+    apt-get install "$dpk" -y $(< "$src"/pkg-ubu-ppa) || exit
+    snap install $(< "$src"/pkg-snap) || exit
+    wget_ins || exit
+    spotsubl_ins || exit
 
     # system tweaks
     echo -e "${nl}performing system tweaks${nl}"
@@ -261,10 +227,8 @@ elif [[ "$osver" = "$ubu" ]]; then
 
     # user-specific tweaks
     su - "$user" <<EOF
-    pyruby_ins
-    bin_ins
-    dot_ins
-    systemd_user_ins
+    src=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ) || exit
+    exec "$src"/DUApost-user_setup.sh
 EOF
 
     echo -e "${nl}ALL DONE\nPlease check the install logs and then reboot${nl}"
