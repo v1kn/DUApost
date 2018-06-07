@@ -2,8 +2,8 @@
 
 nl=$'\n==========\n'
 src=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-exec 1> >(tee -a "$src"/post.log)
-exec 2> >(tee -a "$src"/post_err.log)
+exec 1> >(tee -a "$src"/post_user.log)
+exec 2> >(tee -a "$src"/post_err_user.log)
 
 echo -e "${nl}SETTING UP USER TWEAKS${nl}"
 
@@ -13,6 +13,7 @@ nvidia_chk(){
         || nvidia=0
 }
 dot_ins() {
+    echo -e "${nl}installing dotfiles${nl}"
     while read stowdir; do
         stow -d "$HOME"/grepo/dotfiles -t "$HOME" "$stowdir"
     done < "$src"/pkg-stow
@@ -31,7 +32,7 @@ pyruby_ins() {
 bin_ins() {
     echo -e "${nl}aggregating user binaries${nl}"
     local dirs=""$HOME"/grepo/bin "$HOME"/.local/pyvenv/bin "$HOME"/.gem/ruby/2.3.0/bin"
-    find "$dirs" \
+    find $dirs \
         -follow \
         -mindepth 1 \
         -maxdepth 1 \
