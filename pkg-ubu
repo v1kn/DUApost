@@ -1,4 +1,5 @@
 abcde
+amule
 anki
 apt
 apt-rdepends
@@ -115,6 +116,7 @@ goldendict
 gparted
 gpick
 gpicview
+greybird-gtk-theme
 grsync
 gstreamer1.0-fluendo-mp3
 gstreamer1.0-libav
