@@ -17,7 +17,6 @@ bc
 bleachbit
 blueman
 bluez-cups
-borgbackup
 build-essential
 caca-utils
 caffeine
@@ -145,6 +144,7 @@ kakasi
 lame
 lcdf-typetools
 latex-cjk-all
+libacl1-dev
 libavcodec-extra
 libreoffice
 libreoffice-gnome
@@ -177,7 +177,6 @@ mpv
 mtp-tools
 nano
 ncdu
-newsbeuter
 ntfs-3g
 numix-gtk-theme
 openjdk-8-jre
@@ -201,13 +200,10 @@ qbittorrent
 qt4-qtconfig
 qt5-style-plugins
 qt5ct
-ranger
 recoll
 redshift
 rename
 rkhunter
-ruby
-ruby-dev
 safecopy
 sdcv
 shntool

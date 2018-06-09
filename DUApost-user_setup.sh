@@ -20,9 +20,6 @@ dot_ins() {
 }
 pyruby_ins() {
     cd "$HOME"
-    echo -e "${nl}installing ruby gems${nl}"
-    gem install --user-install tmuxinator github-pages
-
     echo -e "${nl}installing pip packages${nl}"
     virtualenv -p python3 "$HOME"/.local/pyvenv
     source "$HOME"/.local/pyvenv/bin/activate

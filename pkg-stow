@@ -4,15 +4,14 @@ cheat
 cmus
 htop
 mpv
-newsbeuter
 pandoc
-pipgem
 ranger
 redshift
+rofi
 systemd-home
 terminator
 tmux
-tmuxinator
+tmuxp
 vim
 ytdl
 zathura
