@@ -1,20 +1,9 @@
 ======
-wget
-======
-uget-chrome-wrapper
-https://github.com/slgobinath/uget-chrome-wrapper/releases/download/v2.0.4/uget-chrome-wrapper_2.0.4-1_amd64.deb
-
-======
 other
 ======
-maybe rofi instead of alfred?
-
 ms-sys
 https://sourceforge.net/projects/ms-sys/files/
 
 nvidia-settings (pc dependent)
 
 tlp (system dependent?)
-
-wget -O discord.deb https://discordapp.com/api/download?platform=linux&format=deb
-

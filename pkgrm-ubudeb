@@ -26,7 +26,6 @@ gnome-user-guide
 gnome-orca
 gnumeric
 gnumeric-common
-guvcview
 mtpaint
 parole
 pidgin
@@ -37,7 +36,6 @@ ristretto
 rhythmbox
 rhythmbox-data
 sudoku
-thunderbird
 icedove
 iceweasel
 totem
@@ -45,12 +43,3 @@ totem-common
 transmission
 transmission-common
 transmission-gtk
-whoopsie
-xfburn
-xfce4-cpugraph-plugin
-xfce4-eyes-plugin
-xfce4-notes
-xfce4-mailwatch-plugin
-xfce4-quicklauncher-plugin
-xfce4-taskmanager
-xfce4-verve-plugin

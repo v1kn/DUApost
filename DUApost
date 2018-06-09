@@ -81,10 +81,7 @@ intel_ins() {
     echo -e "$intel" > /etc/X11/xorg.conf.d/20-intel.conf
 }
 systemd_ins() {
-    chattr +i "$hm"/grepo/bin/sbin
-    while read file; do
-        ln -s "$file" /usr/local/bin/
-    done <<< $(find "$hm"/grepo/bin/sbin -depth -type f)
+    cp "$hm"/grepo/bin/{ccnow,rm} /usr/local/bin/
     cp "$hm"/grepo/dotfiles/etc/systemd/* /etc/systemd/system/
     while read serv; do
         systemctl enable "$serv"
@@ -94,7 +91,8 @@ systemd_ins() {
 wget_ins() {
     cd "$hm"/debs
     while read sftwr; do
-        wget -q "$sftwr"
+        wpkg=( $sftwr )
+        wget -q -O ${wpkg[0]} ${wpkg[1]}
     done < "$src"/pkg-wget
     gdebi --n --q *.deb
     cd "$hm"

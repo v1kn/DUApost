@@ -1,4 +1,5 @@
-https://repo.skype.com/latest/skypeforlinux-64.deb
-http://download.cdn.viber.com/cdn/desktop/Linux/viber.deb
-https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-https://launchpad.net/~lenski/+archive/ubuntu/ms-sys/+files/ms-sys_2.2.0-1ubuntu1_amd64.deb
+skype.deb https://repo.skype.com/latest/skypeforlinux-64.deb
+chome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+mssys.deb https://launchpad.net/~lenski/+archive/ubuntu/ms-sys/+files/ms-sys_2.2.0-1ubuntu1_amd64.deb
+albert.deb https://download.opensuse.org/repositories/home:/manuelschneid3r/xUbuntu_18.04/amd64/albert_0.14.21_amd64.deb
+discord.deb "https://discordapp.com/api/download?platform=linux&format=deb"
